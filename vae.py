@@ -51,13 +51,13 @@ class VAE:
         
         #Decoder1 (784)
         inter_dec1 = tf.matmul(h_dec2, self.w_dec1) + self.b_dec1
-        h_dec1 = tf.nn.tanh(inter_dec1)
+        h_dec1 = tf.nn.sigmoid(inter_dec1)
         h_dec1 = tf.reshape(h_dec1, [-1, 28, 28, 1])
         
         return h_dec1, inter_enc2_mu, inter_enc2_ln_var, z
 
 def sample_z(mu, ln_var):
-    epsilon = tf.random_normal(tf.shape(mu), 0.1, dtype=tf.float32)
+    epsilon = tf.random_normal(tf.shape(mu), stddev=0.01, dtype=tf.float32)
     z = mu + epsilon * ln_var    
     return z
     

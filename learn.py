@@ -93,6 +93,9 @@ def main(_):
                 saver.save(sess, FLAGS.save_dir + "/model", global_step = i)
 
         np.savetxt(FLAGS.save_dir + "/error.log", logger.error_arr, fmt="%0.6f")
+
+        batch_xs, labels = mnist.train.next_batch(1000)
+        batch_xs = np.reshape(batch_xs, [1000, 28, 28, 1])
         reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
         mu_and_labels = np.c_[mu_log, labels]
         np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
