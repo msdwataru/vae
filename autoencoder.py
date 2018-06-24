@@ -26,7 +26,7 @@ class Autoencoder:
             self.b_dec1 = tf.Variable(tf.zeros([28 * 28]))
 
     def __call__(self, x, batch_size, train=True):
-
+        
         #Full connection1(300)
         h_conv4 = tf.reshape(x, [-1, 1 * 28 * 28])
         inter_enc1 = tf.matmul(h_conv4, self.w_enc1) + self.b_enc1

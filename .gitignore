@@ -1,0 +1,7 @@
+result
+MNIST
+MNIST_data
+*.pyc
+*.py~
+*.png
+vae_chen.py

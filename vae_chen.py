@@ -83,10 +83,11 @@ with tf.Session() as sess:
 			print("step{},loss{}".format(step,error))
 
 	#print sess.run([size],feed_dict={x_placeholder:batch[0]})
-
+        features = sess.run(mu, feed_dict=feed_dict)
 	n=5
 	canvas_orig=np.empty((28*n,28*n))
 	canvas_recon = np.empty((28 * n, 28 * n))
+        embed()
 	for i in range(n):
 		batch=mnist.test.next_batch(n)
 		feed_dict={x_placeholder:batch[0]}

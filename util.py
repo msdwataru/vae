@@ -29,13 +29,13 @@ def read_image(data_dir):
     print("data shape = {}".format(data_shape))
     return data, data_num, data_shape
 
-def normalize(x, min_in=0, max_in=255, min_out=-1, max_out=1):
+def normalize(x, min_in=0, max_in=255, min_out=-1, max_out=1, scale=0.8):
     x = (x - min_in) / float(max_in - min_in)
-    x = x * (max_out - min_out) + min_out
+    x = scale * x * (max_out - min_out) + min_out
     return x
 
-def denormalize(x, min_in=0, max_in=255, min_out=-1, max_out=1):
-    x = (x - min_out) / (max_out - min_out) * (max_in - min_in)
+def denormalize(x, min_in=0, max_in=255, min_out=-1, max_out=1, scale=0.8):
+    x = (x / scale - min_out) / (max_out - min_out) * (max_in - min_in)
     return x
 
 def add_noise(x, sigma=0.1):
@@ -48,9 +48,12 @@ class Logger():
         self.total_time = 0
         self.start_time = time.time()
         self.error_arr = np.zeros((0))
-    def __call__(self, epoch, loss):
+    def __call__(self, epoch, loss, latent_loss=None):
         current_time = time.time()
         self.total_time = current_time - self.start_time
-        print("epoch: {} time: {} loss: {}".format(epoch + 1, self.total_time, loss))
+        if latent_loss != None:
+            print("epoch: {} time: {} loss: {} latent loss: {}".format(epoch + 1, self.total_time, loss, latent_loss))
+        else:
+            print("epoch: {} time: {} loss: {}".format(epoch + 1, self.total_time, loss))
         self.error_arr = np.r_[self.error_arr, loss]
             
