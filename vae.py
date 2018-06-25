@@ -14,7 +14,7 @@ class VAE:
         #define learnable parameter
         with tf.variable_scope("ae"):
             #encoder
-            self.w_enc1 = tf.Variable(tf.truncated_normal([28 * 28, self.ch_list[1]], stddev=stddev))
+            self.w_enc1 = tf.Variable(tf.truncated_normal([28 * 28 * self.ch_list[0], self.ch_list[1]], stddev=stddev))
             self.b_enc1 = tf.Variable(tf.zeros([self.ch_list[1]]))
             self.w_enc2 = tf.Variable(tf.truncated_normal([self.ch_list[1], self.ch_list[1]], stddev=stddev))
             self.b_enc2 = tf.Variable(tf.zeros([self.ch_list[1]]))
@@ -28,13 +28,13 @@ class VAE:
             self.b_dec3 = tf.Variable(tf.zeros([self.ch_list[1]]))
             self.w_dec2 = tf.Variable(tf.truncated_normal([self.ch_list[1], self.ch_list[1]],stddev=stddev))
             self.b_dec2 = tf.Variable(tf.zeros([self.ch_list[1]]))
-            self.w_dec1 = tf.Variable(tf.truncated_normal([self.ch_list[1], 28 * 28], stddev=stddev))
-            self.b_dec1 = tf.Variable(tf.zeros([28 * 28]))
+            self.w_dec1 = tf.Variable(tf.truncated_normal([self.ch_list[1], 28 * 28 * self.ch_list[0]], stddev=stddev))
+            self.b_dec1 = tf.Variable(tf.zeros([28 * 28 * self.ch_list[0]]))
 
     def __call__(self, x, batch_size, train=True):
 
         #Encoder1 (500)
-        inputs = tf.reshape(x, [-1, 1 * 28 * 28])
+        inputs = tf.reshape(x, [-1, self.ch_list[0] * 28 * 28])
         inter_enc1 = tf.matmul(inputs, self.w_enc1) + self.b_enc1
         h_enc1 = tf.nn.softplus(inter_enc1)
 
@@ -65,8 +65,7 @@ class VAE:
         #Decoder1 (784)
         inter_dec1 = tf.matmul(h_dec2, self.w_dec1) + self.b_dec1
         h_dec1 = tf.nn.sigmoid(inter_dec1)
-        h_dec1 = tf.reshape(h_dec1, [-1, 28, 28, 1])
-        
+        h_dec1 = tf.reshape(h_dec1, [-1, 28, 28, self.ch_list[0]])
         return h_dec1, inter_enc3_mu, sigma, z
 
 def sample_z(mu, sigma):
@@ -87,6 +86,3 @@ def deconv2d(x, weight, output_shape, batch_norm=None, train=True, activation=tf
         h_deconv = batch_norm(h_deconv, train=train)
     h_deconv = activation(h_deconv)
     return h_deconv
-
-
-    
