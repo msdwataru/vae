@@ -1,7 +1,9 @@
 result
 MNIST
 MNIST_data
+goal_images
 *.pyc
 *.py~
 *.png
 vae_chen.py
+vae_jan.py
