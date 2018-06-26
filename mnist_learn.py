@@ -48,6 +48,7 @@ def _loss_with_KL_divergence(outputs, targets, mu, sigma):
         #latent_loss = 0.5 * tf.reduce_sum(tf.square(sigma) + tf.square(mu) - tf.log(tf.square(sigma)) - 1)
         #latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(sigma) - 1, [1])
         loss = tf.reduce_mean(reconstruction_loss + 1. * latent_loss)
+        latent_loss = tf.reduce_mean(latent_loss)
         #loss = reconstruction_loss + 1.0 * latent_loss
         return loss, reconstruction_loss, latent_loss
 
@@ -62,13 +63,14 @@ def main(_):
     np.random.seed(FLAGS.seed)
     tf.set_random_seed(FLAGS.seed)
     mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+    n_samples = mnist.train.num_examples
     data, _ = mnist.train.next_batch(50)
     data_shape = [28, 28, 1]
     #data, data_num, data_shape = read_image(FLAGS.data_dir)
     #test_data,test_data_num, test_data_shape = read_image(FLAGS.test_data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
 
-    channel_list = [1, 500, 20]
+    channel_list = [1, 500, 5]
     #cnn = CNNAE(k_h=FLAGS.k_h, k_w=FLAGS.k_w)
     #ae = Autoencoder(ch_list=channel_list)
     vae = VAE(ch_list=channel_list)
@@ -83,22 +85,21 @@ def main(_):
         sess.run(tf.global_variables_initializer())
 
         #start training
-        for i in range(1, FLAGS.epoch + 1):
-            #batch_index = np.random.randint(data_num - FLAGS.batch_size)
-            #batch_xs = normalize(data[batch_index:(batch_index + FLAGS.batch_size)])
-            batch_xs, labels = mnist.train.next_batch(FLAGS.batch_size)
-            batch_xs = np.reshape(batch_xs, [FLAGS.batch_size, 28, 28, 1])
-            #noised_batch_xs = add_noise(batch_xs)
-            result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-            #result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-            if (i + 1) % 10 == 0:
-                #test_batch_xs = normalize(test_data[:FLAGS.batch_size])
-                #test_loss = sess.run(loss, feed_dict={input_placeholder: test_batch_xs, target_placeholder: test_batch_xs})
-                #logger(i, result[0], test_loss)
-                logger(i, result[0])
-                #print(result[1], result[2])
+        for epoch in range(1, FLAGS.epoch + 1):
+            avg_error = 0
+            avg_lat_error = 0
+            total_batch = int(n_samples / FLAGS.batch_size)
+            for i in range(total_batch):
+                batch_xs, labels = mnist.train.next_batch(FLAGS.batch_size)
+                batch_xs = np.reshape(batch_xs, [FLAGS.batch_size, 28, 28, 1])
+                #noised_batch_xs = add_noise(batch_xs)
+                result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+                #result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+                avg_error += result[0]
+                avg_lat_error += result[2]
+            logger(epoch, avg_error, latent_loss=avg_lat_error)
                 
-            if i % FLAGS.li == 0:
+            if epoch % FLAGS.li == 0:
                 saver.save(sess, FLAGS.save_dir + "/model", global_step = i)
 
         np.savetxt(FLAGS.save_dir + "/error.log", logger.error_arr, fmt="%0.6f")
