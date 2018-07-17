@@ -36,7 +36,7 @@ def make_placeholder(data_shape, is_training=True):
 
 def _loss(outputs, targets):
     with tf.name_scope("loss") as loss:
-        loss = tf.reduce_mean(tf.square(outputs - targets))
+        loss = tf.reduce_sum(tf.square(outputs - targets))
         return loss
 
 def _loss_with_KL_divergence(outputs, targets, mu, sigma):
@@ -49,6 +49,7 @@ def _loss_with_KL_divergence(outputs, targets, mu, sigma):
         #latent_loss = 0.5 * tf.reduce_sum(tf.square(sigma) + tf.square(mu) - tf.log(tf.square(sigma)) - 1)
         #latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(sigma) - 1, [1])
         loss = tf.reduce_mean(reconstruction_loss + 1. * latent_loss)
+        reconstruction_loss = tf.reduce_mean(reconstruction_loss)
         latent_loss = tf.reduce_mean(latent_loss)
         #loss = reconstruction_loss + 1.0 * latent_loss
         return loss, reconstruction_loss, latent_loss
@@ -71,14 +72,15 @@ def main(_):
     #test_data,test_data_num, test_data_shape = read_image(FLAGS.test_data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
 
-    channel_list = [1, 500, 5]
-    #cnn = CNNAE(k_h=FLAGS.k_h, k_w=FLAGS.k_w)
+    #channel_list = [1, 500, 20]
+    channel_list = [1, 16, 16, 8]
+    cnn = CNNAE(k_h=FLAGS.k_h, k_w=FLAGS.k_w, ch_list=channel_list)
     #ae = Autoencoder(ch_list=channel_list)
-    vae = VAE(ch_list=channel_list)
-    outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
-    #outputs = cnn(input_placeholder, FLAGS.batch_size)
-    #loss = _loss(outputs, target_placeholder)
-    loss, rec_loss, la_loss = _loss_with_KL_divergence(outputs, target_placeholder, mu, sigma)
+    #vae = VAE(ch_list=channel_list)
+    #outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
+    outputs, features = cnn(input_placeholder, FLAGS.batch_size)
+    loss = _loss(outputs, target_placeholder)
+    #loss, rec_loss, la_loss = _loss_with_KL_divergence(outputs, target_placeholder, mu, sigma)
     train_op = _train(loss)
     logger = Logger()
     saver = tf.train.Saver(tf.global_variables())
@@ -94,20 +96,20 @@ def main(_):
                 batch_xs, labels = mnist.train.next_batch(FLAGS.batch_size)
                 batch_xs = np.reshape(batch_xs, [FLAGS.batch_size, 28, 28, 1])
                 #noised_batch_xs = add_noise(batch_xs)
-                result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-                #result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+                #result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+                result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
                 avg_error += result[0] / n_samples * FLAGS.batch_size
-                avg_lat_error += result[2] / n_samples * FLAGS.batch_size
-            logger(epoch, avg_error, latent_loss=avg_lat_error)
-            #logger(epoch, avg_error)
+                #avg_lat_error += result[2] / n_samples * FLAGS.batch_size
+            #logger(epoch, avg_error, latent_loss=avg_lat_error)
+            logger(epoch, avg_error)
                 
             if epoch % FLAGS.li == 0:
                 saver.save(sess, FLAGS.save_dir + "/model", global_step = i)
 
         np.savetxt(FLAGS.save_dir + "/error.log", logger.error_arr, fmt="%0.6f")
 
-        batch_xs, labels = mnist.train.next_batch(1000)
-        batch_xs = np.reshape(batch_xs, [1000, 28, 28, 1])
+        batch_xs, labels = mnist.train.next_batch(100)
+        batch_xs = np.reshape(batch_xs, [100, 28, 28, 1])
         reconstructed_images = sess.run(outputs, feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
         #reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
         #mu_and_labels = np.c_[mu_log, labels]

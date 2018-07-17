@@ -4,6 +4,8 @@ MNIST_data
 goal_images
 *.pyc
 *~
+.gitignore~
 *.png
 vae_chen.py
 vae_jan.py
+*.tar.gz

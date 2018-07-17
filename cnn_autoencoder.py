@@ -24,8 +24,8 @@ class CNNAE:
             self.b_fc1 = tf.Variable(tf.zeros([5]))
 
             #deconv
-            self.w_fc2 = tf.Variable(tf.truncated_normal([5, 256]))
-            self.b_fc2 = tf.Variable(tf.zeros([256]))
+            self.w_fc2 = tf.Variable(tf.truncated_normal([5, 128]))
+            self.b_fc2 = tf.Variable(tf.zeros([128]))
 
             self.w_deconv1 = tf.Variable(tf.truncated_normal([k_h, k_w, self.ch_list[2], self.ch_list[3]], stddev=stddev))
 
@@ -44,14 +44,14 @@ class CNNAE:
         h_conv3 = conv2d(h_conv2, self.w_conv3, train=train)
 
         #Full connection1(10)
-        h_conv3 = tf.reshape(h_conv3, [-1, 4 * 4 * 16])
+        h_conv3 = tf.reshape(h_conv3, [-1, 4 * 4 * self.ch_list[3]])
         h_fc1 = tf.matmul(h_conv3, self.w_fc1) + self.b_fc1
         h_fc1 = tf.nn.tanh(h_fc1)
 
         #Full connection2(128)
         h_fc2 = tf.matmul(h_fc1, self.w_fc2) + self.b_fc2
         h_fc2 = tf.nn.tanh(h_fc2)
-        h_fc2 = tf.reshape(h_fc2, [-1, 4, 4, 16])
+        h_fc2 = tf.reshape(h_fc2, [-1, 4, 4, self.ch_list[3]])
 
         #Deconv1(7*7*16)
         h_deconv1 = deconv2d(h_fc2, self.w_deconv1, [batch_size, 7, 7, self.ch_list[2]], train=train)
