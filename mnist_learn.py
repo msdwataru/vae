@@ -8,6 +8,7 @@ import random
 import time
 
 from autoencoder import Autoencoder
+from cnn_autoencoder import CNNAE
 from vae import VAE
 from util import *
 
@@ -15,12 +16,12 @@ from IPython import embed
 
 #option
 flags = tf.app.flags
-flags.DEFINE_integer("epoch", 100, "Number of epoch")
-flags.DEFINE_integer("batch_size", 200, "Batch size")
+flags.DEFINE_integer("epoch", 10, "Number of epoch")
+flags.DEFINE_integer("batch_size", 100, "Batch size")
 flags.DEFINE_integer("k_h", 3, "Kernel height")
 flags.DEFINE_integer("k_w", 3, "Kernel width")
 flags.DEFINE_integer("seed", 20180417, "Random seed")
-flags.DEFINE_integer("li", 100, "Log interval")
+flags.DEFINE_integer("li", 10, "Log interval")
 flags.DEFINE_float("lr", 0.001, "Learning rate")
 flags.DEFINE_string("data_dir", "./data/baxter_image/target/20171129/", "Directory of training data")
 flags.DEFINE_string("test_data_dir", "./data/baxter_image/test/", "Directory of test data")
@@ -75,7 +76,7 @@ def main(_):
     #ae = Autoencoder(ch_list=channel_list)
     vae = VAE(ch_list=channel_list)
     outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
-    #outputs = vae(input_placeholder, FLAGS.batch_size)
+    #outputs = cnn(input_placeholder, FLAGS.batch_size)
     #loss = _loss(outputs, target_placeholder)
     loss, rec_loss, la_loss = _loss_with_KL_divergence(outputs, target_placeholder, mu, sigma)
     train_op = _train(loss)
@@ -95,9 +96,10 @@ def main(_):
                 #noised_batch_xs = add_noise(batch_xs)
                 result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
                 #result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-                avg_error += result[0]
-                avg_lat_error += result[2]
+                avg_error += result[0] / n_samples * FLAGS.batch_size
+                avg_lat_error += result[2] / n_samples * FLAGS.batch_size
             logger(epoch, avg_error, latent_loss=avg_lat_error)
+            #logger(epoch, avg_error)
                 
             if epoch % FLAGS.li == 0:
                 saver.save(sess, FLAGS.save_dir + "/model", global_step = i)
@@ -106,10 +108,10 @@ def main(_):
 
         batch_xs, labels = mnist.train.next_batch(1000)
         batch_xs = np.reshape(batch_xs, [1000, 28, 28, 1])
-        #reconstructed_images = sess.run(outputs, feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-        reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-        mu_and_labels = np.c_[mu_log, labels]
-        np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
+        reconstructed_images = sess.run(outputs, feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+        #reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
+        #mu_and_labels = np.c_[mu_log, labels]
+        #np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
 
     n = 10  # how many digits we will display
     plt.figure(figsize=(20, 4))

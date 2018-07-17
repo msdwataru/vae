@@ -52,8 +52,8 @@ class Logger():
         current_time = time.time()
         self.total_time = current_time - self.start_time
         if latent_loss != None:
-            print("epoch: {} time: {} loss: {} latent loss: {}".format(epoch + 1, self.total_time, loss, latent_loss))
+            print("epoch: {} time: {} loss: {} latent loss: {}".format(epoch, self.total_time, loss, latent_loss))
         else:
-            print("epoch: {} time: {} loss: {}".format(epoch + 1, self.total_time, loss))
+            print("epoch: {} time: {} loss: {}".format(epoch, self.total_time, loss))
         self.error_arr = np.r_[self.error_arr, loss]
             

@@ -71,7 +71,7 @@ def read_goal_images(data_dir):
         for image in glob.glob(dp + "/goal*.png"):
             images.append(image)
     random.shuffle(images)
-    #images.sort()
+    images.sort()
     sample_image = cv2.imread(images[0])
     data = np.empty([len(images), sample_image.shape[0], sample_image.shape[1], sample_image.shape[2]])
     labels = []

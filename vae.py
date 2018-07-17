@@ -9,7 +9,7 @@ import tensorflow as tf
 from IPython import embed
 
 class VAE:
-    def __init__(self, ch_list=[3,32,32,16,8], k_h=5, k_w=5, stddev=0.01):
+    def __init__(self, ch_list=[3,32,32,16,8], k_h=5, k_w=5, stddev=0.1):
         self.ch_list = ch_list
         #define learnable parameter
         with tf.variable_scope("ae"):

@@ -42,13 +42,13 @@ def _loss(outputs, targets):
 def _loss_with_KL_divergence(outputs, targets, mu, sigma):
     with tf.name_scope("loss") as loss:
         #reconstruction_loss = 0.5 * tf.reduce_mean(tf.square(outputs - targets))
-        reconstruction_loss = -tf.reduce_sum(targets * tf.log(1e-10 + outputs) + (1 - targets) * tf.log(1e-10 + 1 - outputs), [1, 2, 3]) / 10
+        reconstruction_loss = -tf.reduce_sum(targets * tf.log(1e-7 + outputs) + (1 - targets) * tf.log(1e-7 + 1 - outputs), [1, 2, 3])
         #reconstruction_loss = -tf.reduce_mean(targets * tf.log(1e-10 + outputs))
         #reconstruction_loss = 0.5 * tf.reduce_mean(tf.square(outputs - targets))
-        latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(1e-10 + sigma) - 1, 1)
+        latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(1e-7 + sigma) - 1, 1)
         #latent_loss = 0.5 * tf.reduce_sum(tf.square(sigma) + tf.square(mu) - tf.log(tf.square(sigma)) - 1)
         #latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(sigma) - 1, [1])
-        loss = tf.reduce_mean(reconstruction_loss + 1. * latent_loss)
+        loss = tf.reduce_mean(reconstruction_loss + 5. * latent_loss)
         latent_loss = tf.reduce_mean(latent_loss)
         #loss = reconstruction_loss + 1.0 * latent_loss
         return loss, reconstruction_loss, latent_loss
@@ -77,18 +77,20 @@ def main(_):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
 
+        batch_xs = normalize(data, min_out=0., max_out=1., scale=1.)
+        batch_ts = np.empty(data.shape)
+        for i in range(len(data)):
+            batch_ts[i] = batch_xs[i / 10]
         #start training
         for i in range(1, FLAGS.epoch + 1):
-            batch_xs = normalize(data, min_out=0., max_out=1., scale=1.)
             #noised_batch_xs = add_noise(batch_xs)
-            feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_xs}
-            result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict=feed_dict)
+            feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_ts}
+            result = sess.run([loss,rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)
             if (i + 1) % 10 == 0:
                 #test_batch_xs = normalize(test_data[:FLAGS.batch_size])
                 #test_loss = sess.run(loss, feed_dict={input_placeholder: test_batch_xs, target_placeholder: test_batch_xs})
                 #logger(i, result[0], test_loss)
                 logger(i, result[0], latent_loss=result[2])
-             
                 
             if i % FLAGS.li == 0:
                 saver.save(sess, FLAGS.save_dir + "/model", global_step = i)
@@ -97,11 +99,8 @@ def main(_):
 
         #batch_xs, labels = mnist.train.next_batch(1000)
         #batch_xs = np.reshape(batch_xs, [1000, 28, 28, 1])
-        batch_xs = normalize(data[:10, :, :, :], min_out=0., max_out=1., scale=1.)
-        feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_xs}
-        #reconstructed_images = sess.run(outputs, feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
         reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-        mu_and_labels = np.c_[mu_log, labels[:10]]
+        mu_and_labels = np.c_[mu_log, labels]
         np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
         embed()
     n = 10  # how many digits we will display
