@@ -9,7 +9,6 @@ import time
 from autoencoder import Autoencoder
 from cnn_autoencoder import CNNAE
 from vae import VAE
-from target_reader import read_goal_images
 from util import *
 
 from IPython import embed
@@ -23,7 +22,7 @@ flags.DEFINE_integer("k_w", 3, "Kernel width")
 flags.DEFINE_integer("seed", 20180417, "Random seed")
 flags.DEFINE_integer("li", 100, "Log interval")
 flags.DEFINE_float("lr", 0.001, "Learning rate")
-flags.DEFINE_string("data_dir", "./goal_images/", "Directory of training data")
+flags.DEFINE_string("data_dir", "./image/env_images/", "Directory of training data")
 flags.DEFINE_string("test_data_dir", "./data/baxter_image/test/", "Directory of test data")
 flags.DEFINE_string("save_dir", "./result", "Directory which results are saved")
 
@@ -63,9 +62,11 @@ def _train(loss):
 def main(_):
     np.random.seed(FLAGS.seed)
     tf.set_random_seed(FLAGS.seed)
-    data, data_num, data_shape, labels = read_goal_images(FLAGS.data_dir)
+    #data, data_num, data_shape, labels = read_images(FLAGS.data_dir, use_labels=True)
+    data, data_num, data_shape = read_images(FLAGS.data_dir)
     #test_data,test_data_num, test_data_shape = read_image(FLAGS.test_data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
+    embed()
     channel_list = [data_shape[2], 500, 5]
     #ae = Autoencoder(ch_list=channel_list)
     vae = VAE(ch_list=channel_list)
@@ -78,13 +79,13 @@ def main(_):
         sess.run(tf.global_variables_initializer())
 
         batch_xs = normalize(data, min_out=0., max_out=1., scale=1.)
-        batch_ts = np.empty(data.shape)
-        for i in range(len(data)):
-            batch_ts[i] = batch_xs[i / 10]
+        #batch_ts = np.empty(data.shape)
+        #for i in range(len(data)):
+        #    batch_ts[i] = batch_xs[i / 10]
         #start training
         for i in range(1, FLAGS.epoch + 1):
             #noised_batch_xs = add_noise(batch_xs)
-            feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_ts}
+            feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_xs}
             result = sess.run([loss,rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)
             if (i + 1) % 10 == 0:
                 #test_batch_xs = normalize(test_data[:FLAGS.batch_size])

@@ -5,29 +5,71 @@ import numpy as np
 import cv2
 import random
 import time
-
+import os
 import sys
 from IPython import embed
 
-def read_image(data_dir):
-    images = glob.glob(data_dir + "*png")
+def read_images(data_dir, use_labels=False):
+    files = os.listdir(data_dir)
+    files_dir = [f for f in files if os.path.isdir(os.path.join(data_dir, f))]
+    files_dir = [data_dir + f for f in files_dir]
+    images = []
+    for file_dir in files_dir:
+        for image in glob.glob(file_dir + "/*.jpg"):
+            images.append(image)
     #images = glob.glob(data_dir + "*")
     random.shuffle(images)
     #images.sort()
     sample_image = cv2.imread(images[0])
     data = np.empty([len(images), sample_image.shape[0], sample_image.shape[1], sample_image.shape[2]])
+    labels = []
+    for i, image in enumerate(images):
+        #print("reading a file: {0}".format(file))
+        rgb_image = cv2.imread(image)
+        #gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY).reshape(28,28,1)
+        #data.append(rgb_image)
+        if rgb_image.shape != (256, 256, 3):
+            print image
+        data[i, :, :, :] = rgb_image
+        if use_labels:
+            file_name = image.split("/")[-1]
+            labels.append(int(re.findall(r"\d+", file_name)[0][:3]))
+    data_num = len(data)
+    data_shape = data[0].shape
+    
+    print("data num = {}".format(data_num))
+    print("data shape = {}".format(data_shape))
+    if labels:
+        return data, data_num, data_shape, labels
+    else:
+        return data, data_num, data_shape
+
+def read_goal_images(data_dir):
+    dir_path = glob.glob(data_dir + "goal*")
+    images = []
+    for dp in dir_path:
+        for image in glob.glob(dp + "/goal*.png"):
+            images.append(image)
+    random.shuffle(images)
+    #images.sort()
+    sample_image = cv2.imread(images[0])
+    data = np.empty([len(images), sample_image.shape[0], sample_image.shape[1], sample_image.shape[2]])
+    labels = []
     for i, image in enumerate(images):
         #print("reading a file: {0}".format(file))
         rgb_image = cv2.imread(image)
         #gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY).reshape(28,28,1)
         #data.append(rgb_image)
         data[i, :, :, :] = rgb_image
+        file_name = image.split("/")[-1]
+        labels.append(int(re.findall(r"\d+", file_name)[0][:3]))        
+
     data_num = len(data)
     data_shape = data[0].shape
-    
+        
     print("data num = {}".format(data_num))
     print("data shape = {}".format(data_shape))
-    return data, data_num, data_shape
+    return data, data_num, data_shape, labels
 
 def normalize(x, min_in=0, max_in=255, min_out=-1, max_out=1, scale=0.8):
     x = (x - min_in) / float(max_in - min_in)
