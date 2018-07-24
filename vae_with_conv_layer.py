@@ -9,12 +9,13 @@ import tensorflow as tf
 from IPython import embed
 
 class VAE:
-    def __init__(self, ch_list=[3,32,32,16,8], k_h=5, k_w=5, stddev=0.01):
+    def __init__(self, ch_list=[3,32,32,16,8], image_size= 28, k_h=5, k_w=5, stddev=0.01):
         self.ch_list = ch_list
+        self.image_size = image_size
         #define learnable parameter
         with tf.variable_scope("ae"):
             #encoder
-            self.w_enc1 = tf.Variable(tf.truncated_normal([28 * 28 * self.ch_list[0], self.ch_list[1]], stddev=stddev))
+            self.w_enc1 = tf.Variable(tf.truncated_normal([self.image_size * self.image_size * self.ch_list[0], self.ch_list[1]], stddev=stddev))
             self.b_enc1 = tf.Variable(tf.zeros([self.ch_list[1]]))
             self.w_enc2 = tf.Variable(tf.truncated_normal([self.ch_list[1], self.ch_list[1]], stddev=stddev))
             self.b_enc2 = tf.Variable(tf.zeros([self.ch_list[1]]))
@@ -28,13 +29,13 @@ class VAE:
             self.b_dec3 = tf.Variable(tf.zeros([self.ch_list[1]]))
             self.w_dec2 = tf.Variable(tf.truncated_normal([self.ch_list[1], self.ch_list[1]],stddev=stddev))
             self.b_dec2 = tf.Variable(tf.zeros([self.ch_list[1]]))
-            self.w_dec1 = tf.Variable(tf.truncated_normal([self.ch_list[1], 28 * 28 * self.ch_list[0]], stddev=stddev))
-            self.b_dec1 = tf.Variable(tf.zeros([28 * 28 * self.ch_list[0]]))
+            self.w_dec1 = tf.Variable(tf.truncated_normal([self.ch_list[1], self.image_size * self.image_size * self.ch_list[0]], stddev=stddev))
+            self.b_dec1 = tf.Variable(tf.zeros([self.image_size * self.image_size * self.ch_list[0]]))
 
     def __call__(self, x, batch_size, train=True):
 
         #Encoder1 (500)
-        inputs = tf.reshape(x, [-1, self.ch_list[0] * 28 * 28])
+        inputs = tf.reshape(x, [-1, self.ch_list[0] * self.image_size * self.image_size])
         inter_enc1 = tf.matmul(inputs, self.w_enc1) + self.b_enc1
         h_enc1 = tf.nn.softplus(inter_enc1)
 
@@ -65,7 +66,7 @@ class VAE:
         #Decoder1 (784)
         inter_dec1 = tf.matmul(h_dec2, self.w_dec1) + self.b_dec1
         h_dec1 = tf.nn.sigmoid(inter_dec1)
-        h_dec1 = tf.reshape(h_dec1, [-1, 28, 28, self.ch_list[0]])
+        h_dec1 = tf.reshape(h_dec1, [-1, self.image_size, self.image_size, self.ch_list[0]])
         return h_dec1, inter_enc3_mu, sigma, z
 
 def sample_z(mu, sigma):
