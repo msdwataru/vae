@@ -8,7 +8,7 @@ import time
 
 from autoencoder import Autoencoder
 from cnn_autoencoder import CNNAE
-from vae import VAE
+from vae_with_conv_layer import VAE
 from util import *
 
 from IPython import embed
@@ -47,7 +47,7 @@ def _loss_with_KL_divergence(outputs, targets, mu, sigma):
         latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(1e-7 + sigma) - 1, 1)
         #latent_loss = 0.5 * tf.reduce_sum(tf.square(sigma) + tf.square(mu) - tf.log(tf.square(sigma)) - 1)
         #latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(sigma) - 1, [1])
-        loss = tf.reduce_mean(reconstruction_loss + 5. * latent_loss)
+        loss = tf.reduce_mean(reconstruction_loss + 1. * latent_loss)
         latent_loss = tf.reduce_mean(latent_loss)
         #loss = reconstruction_loss + 1.0 * latent_loss
         return loss, reconstruction_loss, latent_loss
@@ -66,10 +66,9 @@ def main(_):
     data, data_num, data_shape = read_images(FLAGS.data_dir)
     #test_data,test_data_num, test_data_shape = read_image(FLAGS.test_data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
-    embed()
     channel_list = [data_shape[2], 500, 5]
     #ae = Autoencoder(ch_list=channel_list)
-    vae = VAE(ch_list=channel_list)
+    vae = VAE(ch_list=channel_list, image_size=data_shape[0])
     outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
     loss, rec_loss, la_loss = _loss_with_KL_divergence(outputs, target_placeholder, mu, sigma)
     train_op = _train(loss)
@@ -87,7 +86,7 @@ def main(_):
             #noised_batch_xs = add_noise(batch_xs)
             feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_xs}
             result = sess.run([loss,rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)
-            if (i + 1) % 10 == 0:
+            if i % 10 == 0:
                 #test_batch_xs = normalize(test_data[:FLAGS.batch_size])
                 #test_loss = sess.run(loss, feed_dict={input_placeholder: test_batch_xs, target_placeholder: test_batch_xs})
                 #logger(i, result[0], test_loss)
