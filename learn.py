@@ -100,8 +100,8 @@ def main(_):
         #batch_xs, labels = mnist.train.next_batch(1000)
         #batch_xs = np.reshape(batch_xs, [1000, 28, 28, 1])
         reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-        mu_and_labels = np.c_[mu_log, labels]
-        np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
+        #mu_and_labels = np.c_[mu_log, labels]
+        #np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
         embed()
     n = 10  # how many digits we will display
     plt.figure(figsize=(20, 4))
