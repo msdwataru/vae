@@ -1,7 +1,7 @@
 result
 MNIST
 MNIST_data
-goal_images
+image
 *.pyc
 *~
 .gitignore~
