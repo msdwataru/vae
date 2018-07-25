@@ -66,7 +66,7 @@ def main(_):
     data, data_num, data_shape = read_images(FLAGS.data_dir)
     #test_data,test_data_num, test_data_shape = read_image(FLAGS.test_data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
-    channel_list = [data_shape[2], 500, 5]
+    channel_list = [data_shape[2], 32, 32, 100,  10]
     #ae = Autoencoder(ch_list=channel_list)
     vae = VAE(ch_list=channel_list, image_size=data_shape[0])
     outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
