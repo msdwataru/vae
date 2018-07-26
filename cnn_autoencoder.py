@@ -3,7 +3,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
 #from BatchNormalization import BatchNormalization
 
 from IPython import embed
