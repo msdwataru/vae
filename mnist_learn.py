@@ -43,7 +43,6 @@ def _loss_with_KL_divergence(outputs, targets, mu, sigma):
     with tf.name_scope("loss") as loss:
         #reconstruction_loss = 0.5 * tf.reduce_mean(tf.square(outputs - targets))
         reconstruction_loss = -tf.reduce_sum(targets * tf.log(1e-10 + outputs) + (1 - targets) * tf.log(1e-10 + 1 - outputs), [1, 2])
-        #reconstruction_loss = -tf.reduce_mean(targets * tf.log(1e-10 + outputs))
         #reconstruction_loss = 0.5 * tf.reduce_mean(tf.square(outputs - targets))
         latent_loss = 0.5 * tf.reduce_sum(sigma + tf.square(mu) - tf.log(sigma) - 1, 1)
         #latent_loss = 0.5 * tf.reduce_sum(tf.square(sigma) + tf.square(mu) - tf.log(tf.square(sigma)) - 1)
