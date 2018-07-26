@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 import random
 import time
+import sys
 
 from autoencoder import Autoencoder
 from cnn_autoencoder import CNNAE
@@ -85,6 +86,7 @@ def main(_):
         #    batch_ts[i] = batch_xs[i / 10]
         #start training
         for epoch in range(1, FLAGS.epoch + 1):
+            # mini batch training
             if FLAGS.is_minibatch:
                 avg_error = 0
                 avg_lat_error = 0
@@ -96,8 +98,14 @@ def main(_):
                     result = sess.run([loss, rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)
                     avg_error += result[0] / data_num * FLAGS.batch_size
                     avg_lat_error += result[2] / data_num * FLAGS.batch_size
+                    process_rate = 100. * (i + 1) / total_batch
+                    sys.stdout.write("\rminibatch {0} [{1:<20}] {2:3d}%"
+                                     .format(i, int(process_rate//5) * "=",
+                                             int(process_rate)))
+                sys.stdout.write("\n")
                 logger(epoch, avg_error, latent_loss=avg_lat_error)
 
+            # batch training
             else:
                 #noised_batch_xs = add_noise(batch_xs)
                 feed_dict = {input_placeholder: batch_xs, target_placeholder: batch_xs}

@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import random
 import time
+import sys
 
 from autoencoder import Autoencoder
 from cnn_autoencoder import CNNAE
@@ -99,6 +100,11 @@ def main(_):
                 result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
                 avg_error += result[0] / n_samples * FLAGS.batch_size
                 #avg_lat_error += result[2] / n_samples * FLAGS.batch_size
+                process_rate = 100. * (i + 1) / total_batch
+                sys.stdout.write("\rminibatch {0} [{1:<20}] {2:3d}%"
+                                 .format(i, int(process_rate//5) * "=",
+                                         int(process_rate)))
+            sys.stdout.write("\n")
             #logger(epoch, avg_error, latent_loss=avg_lat_error)
             logger(epoch, avg_error)
                 
