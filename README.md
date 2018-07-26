@@ -1,1 +1,1 @@
-# vae models by tensorflow
+# autoencoder models by tensorflow
