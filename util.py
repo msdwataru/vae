@@ -15,7 +15,7 @@ def read_images(data_dir, use_labels=False):
     files_dir = [data_dir + f for f in files_dir]
     images = []
     for file_dir in files_dir:
-        for image in glob.glob(file_dir + "/*.jpg")[:10]:
+        for image in glob.glob(file_dir + "/*.jpg")[:100]:
             images.append(image)
     #images = glob.glob(data_dir + "*")
     random.shuffle(images)
