@@ -7,8 +7,7 @@ import random
 import time
 
 from autoencoder import Autoencoder
-from vae import VAE
-from target_reader import read_goal_images
+from vae_with_conv_layer import VAE
 from util import *
 
 from IPython import embed
@@ -16,13 +15,13 @@ from IPython import embed
 #option
 flags = tf.app.flags
 flags.DEFINE_integer("epoch", 100, "Number of epoch")
-flags.DEFINE_integer("batch_size", 200, "Batch size")
+flags.DEFINE_integer("batch_size", 100, "Batch size")
 flags.DEFINE_integer("k_h", 3, "Kernel height")
 flags.DEFINE_integer("k_w", 3, "Kernel width")
 flags.DEFINE_integer("seed", 20180417, "Random seed")
 flags.DEFINE_integer("li", 100, "Log interval")
 flags.DEFINE_float("lr", 0.001, "Learning rate")
-flags.DEFINE_string("data_dir", "./goal_images/", "Directory of training data")
+flags.DEFINE_string("data_dir", "./image/env_images/", "Directory of training data")
 flags.DEFINE_string("test_data_dir", "./data/baxter_image/test/", "Directory of test data")
 flags.DEFINE_string("save_dir", "./result", "Directory which results are saved")
 flags.DEFINE_string("saved_dir", "./result", "Directory which learned model is saved")
@@ -68,16 +67,19 @@ def _restore(saver, sess):
 def main(_):
     np.random.seed(FLAGS.seed)
     tf.set_random_seed(FLAGS.seed)
-    data, data_num, data_shape, labels = read_goal_images(FLAGS.data_dir)
+    #data, data_num, data_shape, labels = read_images(FLAGS.data_dir)
+    data, data_num, data_shape = read_images(FLAGS.data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
-    channel_list = [data_shape[2], 500, 5]
+    #channel_list = [data_shape[2], 500, 5]
+    channel_list = [data_shape[2], 32, 32, 100, 10]
     #cnn = CNNAE(k_h=FLAGS.k_h, k_w=FLAGS.k_w)
     #ae = Autoencoder(ch_list=channel_list)
-    vae = VAE(ch_list=channel_list)
+    vae = VAE(ch_list=channel_list, image_size=data_shape[0])
     outputs, mu, sigma, latent_variable = vae(input_placeholder, FLAGS.batch_size, train=True)
     loss, rec_loss, la_loss = _loss_with_KL_divergence(outputs, target_placeholder, mu, sigma)
     train_op = _train(loss)
     logger = Logger()
+    embed()
     saver = tf.train.Saver(tf.global_variables())
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -88,8 +90,8 @@ def main(_):
         #result = sess.run([loss,rec_loss, la_loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
             #result = sess.run([loss, train_op], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
         reconstructed_images, mu_log = sess.run([outputs, mu], feed_dict={input_placeholder: batch_xs, target_placeholder: batch_xs})
-        mu_and_labels = np.c_[mu_log, labels]
-        np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
+        #mu_and_labels = np.c_[mu_log, labels]
+        #np.savetxt(FLAGS.save_dir + "/latent_variables.log", mu_and_labels)
 
     n = 10  # how many digits we will display
     plt.figure(figsize=(20, 4))
