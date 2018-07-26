@@ -15,7 +15,7 @@ def read_images(data_dir, use_labels=False):
     files_dir = [data_dir + f for f in files_dir]
     images = []
     for file_dir in files_dir:
-        for image in glob.glob(file_dir + "/*.jpg")[:100]:
+        for image in glob.glob(file_dir + "/*.jpg"):
             images.append(image)
     #images = glob.glob(data_dir + "*")
     random.shuffle(images)
@@ -28,12 +28,17 @@ def read_images(data_dir, use_labels=False):
         rgb_image = cv2.imread(image)
         #gray_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2GRAY).reshape(28,28,1)
         #data.append(rgb_image)
-        if rgb_image.shape != (256, 256, 3):
-            print image
+        #if rgb_image.shape != (256, 256, 3):
+            #print image
         data[i, :, :, :] = rgb_image
         if use_labels:
             file_name = image.split("/")[-1]
             labels.append(int(re.findall(r"\d+", file_name)[0][:3]))
+        process_rate = 100. * (i + 1) / len(images)
+        sys.stdout.write("\r loading images [{0:<20}] {1:3d}%"
+                         .format(int(process_rate//5) * "=",
+                                 int(process_rate)))
+    sys.stdout.write("\n")
     data_num = len(data)
     data_shape = data[0].shape
     
