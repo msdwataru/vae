@@ -13,12 +13,14 @@ def read_images(data_dir, use_labels=False):
     files = os.listdir(data_dir)
     files_dir = [f for f in files if os.path.isdir(os.path.join(data_dir, f))]
     files_dir = [data_dir + f for f in files_dir]
+    dir_num = len(files_dir)
     images = []
     for file_dir in files_dir:
+        #for image in glob.glob(file_dir + "/*.jpg")[1300:1330]:
         for image in glob.glob(file_dir + "/*.jpg"):
             images.append(image)
     #images = glob.glob(data_dir + "*")
-    random.shuffle(images)
+    #random.shuffle(images)
     #images.sort()
     sample_image = cv2.imread(images[0])
     data = np.empty([len(images), sample_image.shape[0], sample_image.shape[1], sample_image.shape[2]])
@@ -44,10 +46,10 @@ def read_images(data_dir, use_labels=False):
     
     print("data num = {}".format(data_num))
     print("data shape = {}".format(data_shape))
-    if labels:
+    if use_labels:
         return data, data_num, data_shape, labels
     else:
-        return data, data_num, data_shape
+        return data, data_num, data_shape, dir_num
 
 def read_goal_images(data_dir):
     dir_path = glob.glob(data_dir + "goal*")

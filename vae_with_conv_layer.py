@@ -71,7 +71,7 @@ class VAE:
 
         #Deconv1(64 * 64 * 3)
         h_deconv1 = deconv2d(h_deconv2, self.w_deconv1, [batch_size, self.image_size, self.image_size, self.ch_list[0]],train=train, activation=tf.nn.sigmoid)
-                             
+
         return h_deconv1, inter_enc4_mu, sigma, z
 
 def sample_z(mu, sigma):
