@@ -16,7 +16,7 @@ def read_images(data_dir, use_labels=False):
     dir_num = len(files_dir)
     images = []
     for file_dir in files_dir:
-        #for image in glob.glob(file_dir + "/*.jpg")[1300:1330]:
+        #for image in glob.glob(file_dir + "/*.jpg")[1300:1305]:
         for image in glob.glob(file_dir + "/*.jpg"):
             images.append(image)
     #images = glob.glob(data_dir + "*")

@@ -68,7 +68,7 @@ def main(_):
     np.random.seed(FLAGS.seed)
     tf.set_random_seed(FLAGS.seed)
     #data, data_num, data_shape, labels = read_images(FLAGS.data_dir)
-    data, data_num, data_shape = read_images(FLAGS.data_dir)
+    data, data_num, data_shape, _ = read_images(FLAGS.data_dir)
     input_placeholder, target_placeholder = make_placeholder(data_shape)
     #channel_list = [data_shape[2], 500, 5]
     channel_list = [data_shape[2], 32, 32, 100, 10]
