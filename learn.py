@@ -85,7 +85,7 @@ def main(_):
         #for i in range(len(data)):
         #    batch_ts[i] = batch_xs[i / 10]
         # start training
-        embed()
+        
         for epoch in range(1, FLAGS.epoch + 1):
             # mini batch training
             if FLAGS.is_minibatch:
@@ -94,8 +94,9 @@ def main(_):
                 total_batch = int(data_num / FLAGS.batch_size)
                 for i in range(total_batch):
                     mini_batch_xs = batch_xs[i * FLAGS.batch_size:(i + 1) * FLAGS.batch_size, :]
-                    gaussian_noise = tf.random_normal([mini_batch_xs.shape], stddev=0.01)
+                    gaussian_noise = np.random.normal(0, 0.01, mini_batch_xs.shape)
                     noised_mini_batch_xs = mini_batch_xs + gaussian_noise
+               
                     feed_dict = {input_placeholder: noised_mini_batch_xs, target_placeholder: mini_batch_xs}
 
                     result = sess.run([loss, rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)

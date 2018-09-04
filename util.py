@@ -17,8 +17,8 @@ def read_images(data_dir, use_labels=False):
     images = []
     
     for file_dir in files_dir:
-        #for image in glob.glob(file_dir + "/*.jpg")[1300:1305]:
-        for image in glob.glob(file_dir + "/*.jpg"):
+        for image in glob.glob(file_dir + "/*.jpg")[1300:1330]:
+        #for image in glob.glob(file_dir + "/*.jpg"):
             images.append(image)
     #images = glob.glob(data_dir + "*")
     #random.shuffle(images)
@@ -51,7 +51,7 @@ def read_images(data_dir, use_labels=False):
     if use_labels:
         return data, data_num, data_shape, labels
     else:
-        return data, data_num, data_shape, dir_num
+        return data, data_num, data_shape
 
 def read_goal_images(data_dir):
     dir_path = glob.glob(data_dir + "goal*")
