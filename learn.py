@@ -24,7 +24,7 @@ flags.DEFINE_integer("seed", 20180417, "Random seed")
 flags.DEFINE_integer("li", 100, "Log interval")
 flags.DEFINE_float("lr", 0.001, "Learning rate")
 flags.DEFINE_boolean("is_minibatch", True, "Apply minibatch training or batch training")
-flags.DEFINE_string("data_dir", "./image/env_images/", "Directory of training data")
+flags.DEFINE_string("data_dir", "./image/env_images_20180901/", "Directory of training data")
 flags.DEFINE_string("test_data_dir", "./data/baxter_image/test/", "Directory of test data")
 flags.DEFINE_string("save_dir", "./result", "Directory which results are saved")
 
@@ -84,7 +84,8 @@ def main(_):
         #batch_ts = np.empty(data.shape)
         #for i in range(len(data)):
         #    batch_ts[i] = batch_xs[i / 10]
-        #start training
+        # start training
+        embed()
         for epoch in range(1, FLAGS.epoch + 1):
             # mini batch training
             if FLAGS.is_minibatch:
@@ -93,7 +94,9 @@ def main(_):
                 total_batch = int(data_num / FLAGS.batch_size)
                 for i in range(total_batch):
                     mini_batch_xs = batch_xs[i * FLAGS.batch_size:(i + 1) * FLAGS.batch_size, :]
-                    feed_dict = {input_placeholder: mini_batch_xs, target_placeholder: mini_batch_xs}
+                    gaussian_noise = tf.random_normal([mini_batch_xs.shape], stddev=0.01)
+                    noised_mini_batch_xs = mini_batch_xs + gaussian_noise
+                    feed_dict = {input_placeholder: noised_mini_batch_xs, target_placeholder: mini_batch_xs}
 
                     result = sess.run([loss, rec_loss, la_loss, sigma, train_op], feed_dict=feed_dict)
                     avg_error += result[0] / data_num * FLAGS.batch_size
