@@ -15,13 +15,15 @@ def read_images(data_dir, use_labels=False):
     files_dir = [data_dir + f for f in files_dir]
     dir_num = len(files_dir)
     images = []
+    
     for file_dir in files_dir:
         #for image in glob.glob(file_dir + "/*.jpg")[1300:1305]:
         for image in glob.glob(file_dir + "/*.jpg"):
             images.append(image)
     #images = glob.glob(data_dir + "*")
     #random.shuffle(images)
-    #images.sort()
+    images.sort()
+    #images = images[:100]
     sample_image = cv2.imread(images[0])
     data = np.empty([len(images), sample_image.shape[0], sample_image.shape[1], sample_image.shape[2]])
     labels = []
